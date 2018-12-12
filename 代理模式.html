@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<link rel="stylesheet" href="">
+</head>
+<body>
+	<script>
+		var myImage = (function() {
+			var image = document.createElement('img');
+			document.body.appendChild(image);
+
+			return {
+				setSrc: function(src) {
+					image.src = src;
+				}
+			}
+		})();
+
+		//虚拟代理，虚拟一张图片，并添加真实src到该图片上，等到它完全加载完，立马设置到真实Image上。相当于是真实Image在虚拟空间的一个模拟
+		var proxyImage = (function() {
+			var img = new Image;
+
+			//通过这种虚拟方式，相当于监听到该图片的加载时间
+			img.onload = function() {
+				myImage.setSrc(this.src)
+			}
+
+			return {
+				setSrc: function(src) {
+					myImage.setSrc('https://a.msstatic.com/huya/main/assets/img/default/240x360.jpg')
+					img.src = src;
+				}
+			}
+		})()
+
+		proxyImage.setSrc('https://huyaimg.msstatic.com/cdnimage/roomad/pic_1536658560.jpg')
+
+
+		//缓存代理
+		//假如这个算法非常的复杂(这里只是简单的模拟),如果同样的两次计算，每次都重头算，将非常浪费性能
+		//所以可以增加一个代理对象去做缓存处理
+		var mult = function() {
+			console.log('===开始计算===')
+			var a = 1;
+
+			for(var i=0,l=arguments.length;i<l;i++) {
+				a *= arguments[i]
+			}
+
+			return a;
+		}
+
+		//增加一层代理去做缓存
+		var proxyMult = function() {
+			var cache = {};
+
+			return function() {
+				var args = Array.prototype.join.call(arguments, ',');
+				if (args in cache) {
+					return cache[args];
+				}
+				return cache[args] = mult.apply(this, arguments);
+			}
+		}()
+
+		var a = proxyMult(2,3,4,5,6,7,8,9,10)
+		var b = proxyMult(2,3,4,5,6,7,8,9,10)
+
+		console.log(a, b)
+	</script>
+</body>
+</html>
