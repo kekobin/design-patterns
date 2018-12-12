@@ -1,0 +1,95 @@
+<html>
+<body>
+	<form action="http:// xxx.com/register" id="registerForm" method="post">
+		请输入用户名：<input type="text" name="userName"/ >
+		请输入密码：<input type="text" name="password"/ >
+		请输入手机号码：<input type="text" name="phoneNumber"/ >
+		<button>提交</button>
+	</form>
+<script>
+	//制定表单验证策略
+	var strategies = {
+		isNonEmpty: function(value, errorMsg) {
+			if(value === '') {
+				return errorMsg;
+			}
+		},
+		minLength: function(value, length, errorMsg) {
+			if(value.length < length) {
+				return errorMsg;
+			}
+		},
+		isMobile: function(value, errorMsg) {
+			if(!/^1[3|5|8][0-9]{9}$/.test(value)) {
+				return errorMsg;
+			}
+		}
+	}
+
+	function Validator () {
+		this.caches = [];//保存校验规则
+	}
+
+	Validator.prototype.add = function(rules) {
+		for(var i=0,len=rules.length;i<len;i++) {
+			var rule = rules[i], ary = rule.strategy.split(':');
+
+			this.caches.push(function() {
+				//这里使用这种方式好处是，如果'minLength:6'中含有':6'，则它会存在ary的1索引处，没有也不用做别的处理
+				var strategy = ary.shift();
+				ary.unshift(rule.dom.value);
+				ary.push(rule.msg);
+
+				return strategies[strategy].apply(rule.dom, ary)
+			})
+		}
+	}
+
+	Validator.prototype.start = function() {
+		for(var i=0,validataFunc;validataFunc=this.caches[i++];) {
+			var msg = validataFunc();
+
+			if(msg) return msg;
+		}
+	}
+
+	function validataFunc(rules) {
+		var validator = new Validator();
+		validator.add(rules);
+
+		var errorMsg = validator.start();
+
+		return errorMsg;
+	}
+
+	var registerForm = document.getElementById('registerForm');
+	registerForm.onsubmit = function() {
+		var rules = [
+			{
+				dom: registerForm.userName,
+				strategy: 'isNonEmpty',
+				msg:'用户名不能为空'
+			},
+			{
+				dom: registerForm.password,
+				strategy: 'minLength:6',
+				msg:'密码长度不能少于6 位'
+			},
+			{
+				dom: registerForm.phoneNumber,
+				strategy: 'isMobile',
+				msg:'手机号码格式不正确'
+			}
+		]
+
+		var errorMsg = validataFunc(rules);
+
+		if(errorMsg) {
+			alert(errorMsg)
+			return false;
+		}
+		//否则验证通过
+	}
+</script>
+</body>
+</html>
