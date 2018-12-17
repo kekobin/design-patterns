@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<link rel="stylesheet" href="">
+</head>
+<body>
+	<button id="macro">我是遥控器</button>
+	<script>
+		//组合对象
+		//macroCommand 表现得像一个命令，但它实际上只是一组真正命令的“代理”。并非真正的代理，
+		//虽然结构上相似，但macroCommand 只负责传递请求给叶对象，它的目的不在于控制对叶对象的访问。
+		var MacroCommand = function() {
+			return {
+			    commandLists: [],
+			    add: function(command) {
+			    	this.commandLists.push(command)
+			    },
+			    execute: function() {
+			    	for(var i=0,len=this.commandLists.length;i<len;i++) {
+			    		var command = this.commandLists[i];
+
+			    		command.execute();
+			    	}
+			    }
+			}
+		}
+		//叶对象
+		var openDoor = {
+			execute: function() {
+				console.log('开门操作')
+			},
+			add: function() {
+				console.log('开门不支持add')
+			}
+		}
+		var openTV = {
+			execute: function() {
+				console.log('电视操作')
+			},
+			add: function() {
+				console.log('电视不支持add')
+			}
+		}
+		var loginQQ = {
+			execute: function() {
+				console.log('QQ操作')
+			},
+			add: function() {
+				console.log('QQ不支持add')
+			}
+		}
+
+		var macroCommand = MacroCommand();
+		macroCommand.add(openDoor)
+		macroCommand.add(openTV)
+		macroCommand.add(loginQQ)
+
+		var setCommand = function(target, command) {
+			target.onclick = function() {
+				command.execute();
+			}
+		}
+
+		setCommand(document.getElementById('macro'), macroCommand)
+	</script>
+</body>
+</html>
